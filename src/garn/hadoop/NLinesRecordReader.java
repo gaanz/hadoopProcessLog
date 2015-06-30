@@ -14,7 +14,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
 
 public class NLinesRecordReader extends RecordReader<LongWritable, Text> {
-	private final int NLINESTOPROCESS = 1000;
+	private final int NLINESTOPROCESS = 5000;
 	private LineReader in;
 	private LongWritable key;
 	private Text value = new Text();
