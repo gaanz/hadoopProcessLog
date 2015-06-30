@@ -27,26 +27,12 @@ public class CountSerivceLogMapper extends Mapper<LongWritable, Text, Text, IntW
 	public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 		LOG.info("Start ServiceLog "+key);
 		// JDBC driver name and database URL
-		String DB_URL = "jdbc:oracle:thin:@10.252.240.245:1521:campaigndb";
-
-		// Database credentials
-		String USER = "neweServ";
-		String PASS = "neweServ";
-
-		Connection conn = null;
-		Statement stmt = null;
+		
 		try {
 
-			Class.forName("oracle.jdbc.OracleDriver");
-
-			java.util.Properties info = new java.util.Properties();
-			info.put("user", USER);
-			info.put("password", PASS);
-			info.put("useUnicode", "true");
-			info.put("characterEncoding", "UTF-8");
-
-			conn = DriverManager.getConnection(DB_URL, info);
-			conn.setAutoCommit(false);
+			PreparedStatement st;
+			String sql = " INSERT INTO GARN_LOG_SERVICE VALUES( GARN_LOG_SERVICE_SEQ.NEXTVAL , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? ,TO_TIMESTAMP(?, 'yyyymmdd hh24:mi:ss.FF'), ? , ? , TO_TIMESTAMP(?, 'yyyymmdd hh24:mi:ss.FF') , ? , ? , ? , ? , ?) ";
+			st = ProcessLogService.conn.prepareStatement(sql);
 			LOG.info(" Connect DB Success "+key);
 			String lines = value.toString();
 		    String []lineArr = lines.split("\n");
@@ -84,8 +70,7 @@ public class CountSerivceLogMapper extends Mapper<LongWritable, Text, Text, IntW
 						String CHANNEL = ProcessLogService.ModifyInput(rowServiceLog[20],"CHANNEL");
 			
 						
-						String sql = " INSERT INTO GARN_LOG_SERVICE VALUES( GARN_LOG_SERVICE_SEQ.NEXTVAL , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? ,TO_TIMESTAMP(?, 'yyyymmdd hh24:mi:ss.FF'), ? , ? , TO_TIMESTAMP(?, 'yyyymmdd hh24:mi:ss.FF') , ? , ? , ? , ? , ?) ";
-						PreparedStatement st = conn.prepareStatement(sql);
+						
 						st.setString(1,LOGTIME);
 						st.setString(2,SSID);
 						st.setString(3,AUDIT_LOG_ID);
@@ -109,7 +94,7 @@ public class CountSerivceLogMapper extends Mapper<LongWritable, Text, Text, IntW
 
 			
 						st.execute();
-						conn.commit();
+						ProcessLogService.conn.commit();
 						word.set("Success");
 						context.write(word, one);
 						LOG.info(" Insert DB Success "+key);
@@ -119,9 +104,9 @@ public class CountSerivceLogMapper extends Mapper<LongWritable, Text, Text, IntW
 						LOG.info(se);
 						LOG.info("DATA : "+rowServiceLog);
 						
-						if (conn != null) {
+						if (ProcessLogService.conn != null) {
 							try {
-								conn.rollback();
+								ProcessLogService.conn.rollback();
 								word.set("Fail");
 								context.write(word, one);
 							} catch (SQLException e) {
@@ -136,11 +121,11 @@ public class CountSerivceLogMapper extends Mapper<LongWritable, Text, Text, IntW
 						e.printStackTrace();
 						LOG.info(e);
 						LOG.info("DATA : "+rowServiceLog);
-						if (conn != null) {
+						if (ProcessLogService.conn != null) {
 							try {
 								word.set("Fail");
 								context.write(word, one);
-								conn.rollback();
+								ProcessLogService.conn.rollback();
 
 							} catch (SQLException e1) {
 								// TODO Auto-generated catch block
@@ -153,25 +138,12 @@ public class CountSerivceLogMapper extends Mapper<LongWritable, Text, Text, IntW
 				
 			}
 
-		} catch (SQLException se) {
-			// Handle errors for JDBC
-			se.printStackTrace();
-			if (conn != null) {
-				try {
-					conn.rollback();
-					word.set("Fail");
-				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-
 		} catch (Exception e) {
 			// Handle errors for Class.forName
 			e.printStackTrace();
-			if (conn != null) {
+			if (ProcessLogService.conn != null) {
 				try {
-					conn.rollback();
+					ProcessLogService.conn.rollback();
 					word.set("Fail");
 				} catch (SQLException e1) {
 					// TODO Auto-generated catch block
@@ -182,13 +154,13 @@ public class CountSerivceLogMapper extends Mapper<LongWritable, Text, Text, IntW
 		} finally {
 			// finally block used to close resources
 			try {
-				if (stmt != null)
-					conn.close();
+				if (ProcessLogService.stmt != null)
+					ProcessLogService.conn.close();
 			} catch (SQLException se) {
 			}// do nothing
 			try {
-				if (conn != null)
-					conn.close();
+				if (ProcessLogService.conn != null)
+					ProcessLogService.conn.close();
 			} catch (SQLException se) {
 				se.printStackTrace();
 			}

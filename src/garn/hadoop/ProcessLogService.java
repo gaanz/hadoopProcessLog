@@ -24,7 +24,14 @@ public class ProcessLogService {
 
 	
 	
-	
+	public static String DB_URL = "jdbc:oracle:thin:@10.252.240.245:1521:campaigndb";
+
+	// Database credentials
+	public static  String USER = "neweServ";
+	public static String PASS = "neweServ";
+
+	public static Connection conn = null;
+	public static Statement stmt = null;
 	
 	public static class IntSumReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
 		private IntWritable result = new IntWritable();
@@ -41,6 +48,18 @@ public class ProcessLogService {
 	}
 
 	public static void main(String[] args) throws Exception {
+		
+		Class.forName("oracle.jdbc.OracleDriver");
+
+		java.util.Properties info = new java.util.Properties();
+		info.put("user", USER);
+		info.put("password", PASS);
+		info.put("useUnicode", "true");
+		info.put("characterEncoding", "UTF-8");
+
+		conn = DriverManager.getConnection(DB_URL, info);
+		conn.setAutoCommit(false);
+		
 		Configuration conf = new Configuration();
 
 		Job job = Job.getInstance(conf, "ProcessLogService");
